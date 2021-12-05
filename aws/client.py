@@ -120,6 +120,16 @@ class AwsBaseClient:
             self._resources[name] = self.sess.resource(resource_name)
             self.__dict__[name] = self._resources[name]
     
+    def buildClient(self, name: str, **kwargs) -> None:
+         if not self._clients.get(name):
+            self._clients[name] = self.sess.client(name, **kwargs)
+            try: 
+                self._clients[name] = asyncify_boto3_obj(self, name, self._clients[name])
+                logger.info(f'Built Client: {name}')
+            except Exception as e:
+                logger.error(f'Error while Building Client: {name}')
+                logger.error(e)
+
     def getClient(self, name: str, **kwargs) -> boto3.client:
         if not self._clients.get(name):
             self._clients[name] = self.sess.client(name, **kwargs)
